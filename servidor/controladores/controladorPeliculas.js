@@ -1,24 +1,120 @@
-var DB = require('../lib/conexionbd');
+var DB = require("../lib/conexionbd");
+var handler = require("../lib/handlers");
+// Funcion para una pelicula especifica.
+function getPeliculaByID(req, res) {
+  var sql =
+    "select peli.*,gen.nombre as genero from pelicula peli,genero gen where peli.id =" +
+    req.params.id +
+    " and gen.id = peli.genero_id";
+  var sqlActores =
+    "select act.nombre from actor act,actor_pelicula actxpeli where act.id = actxpeli.actor_id and actxpeli.pelicula_id = " +
+    req.params.id;
+  executeById(sql, sqlActores, res);
+}
+// Funcion para devolver todas las peliculas, manejando los distintos filtros.
 
-function getPeliculas(req,res) {
-    var sql = 'Select * from pelicula where id BETWEEN 1 AND 3';
-    DB.query(sql,function(error,resultados,fields) {
-        if(error){
-            errorFormat(error);
-            res.send({peliculas:[]});
+function getPeliculas(req, res) {
+  var sql = [];
+  switch (true) {
+    case req.query.titulo === undefined &&
+      req.query.anio === undefined &&
+      req.query.genero === undefined:
+      sql = handler.defaultHandler(req);
+      break;
+    case req.query.titulo !== undefined &&
+      req.query.anio === undefined &&
+      req.query.genero === undefined:
+      sql = handler.titleHandler(req);
+      break;
+    case req.query.titulo === undefined &&
+      req.query.anio !== undefined &&
+      req.query.genero === undefined:
+      sql = handler.yearHandler(req);
+      break;
+    case req.query.titulo === undefined &&
+      req.query.anio === undefined &&
+      req.query.genero !== undefined:
+      sql = handler.genreHandler(req);
+      break;
+    case req.query.titulo === undefined &&
+      req.query.anio !== undefined &&
+      req.query.genero !== undefined:
+      sql = handler.genreYearHandler(req);
+      break;
+    default:
+      sql = handler.defaultHandler(req);
+      break;
+  }
+  executeHandler(sql, res);
+}
+function getPeliculasRecomendadas(req, res) {
+  var sql = "";
+  switch (true) {
+    case req.query.puntuacion !== undefined:
+      sql = handler.puntuadasHandler(req);
+      break;
+    case req.query.anio_inicio === undefined:
+      sql = handler.recomendadGeneroHandler(req);
+      break;
+    default:
+      sql = handler.recomendadasHandler(req);
+      break;
+  }
+  executeRecomendacion(sql, res);
+}
+function executeHandler(sql, res) {
+  DB.query(sql[0], function(error, result, fields) {
+    if (error) {
+      errorFormat(error);
+    } else {
+      DB.query(sql[1], function(errorCant, resultCant, fieldsCant) {
+        if (errorCant) {
+          errorFormat(errorCant);
         }
-        var response = { peliculas : resultados};
+        var response = { peliculas: result, total: resultCant[0].total };
         res.send(JSON.stringify(response));
+      });
+    }
+  });
+}
+function executeById(sql, sqlActores, res) {
+  DB.query(sql, function(error, result, fields) {
+    if (error) {
+      errorFormat(error);
+    }
+    DB.query(sqlActores, function(errorAct, resultAct, fieldsAct) {
+      if (errorAct) {
+        errorFormat(errorAct);
+      }
+      var response = {
+        pelicula: result[0],
+        actores: resultAct,
+        genero: result[0].genero
+      };
+      res.send(JSON.stringify(response));
     });
-} 
-
-function errorFormat(error){
-    console.log('Error SQL');
-    console.log(error.code);
-    console.log(error.sqlMessage);
-    console.log(error.sqlState);
+  });
+}
+function executeRecomendacion(sql, res) {
+  DB.query(sql, function(error, result, fields) {
+    if (error) {
+      errorFormat(error);
+    }
+    var response = {
+      peliculas: result
+    };
+    res.send(JSON.stringify(response));
+  });
+}
+function errorFormat(error) {
+  console.log("Error SQL");
+  console.log(error.code);
+  console.log(error.sqlMessage);
+  console.log(error.sqlState);
 }
 
 module.exports = {
-    getPeliculas : getPeliculas
+  getPeliculas: getPeliculas,
+  getPeliculaByID: getPeliculaByID,
+  getPeliculasRecomendadas: getPeliculasRecomendadas
 };
