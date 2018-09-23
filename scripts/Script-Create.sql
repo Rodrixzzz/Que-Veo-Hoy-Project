@@ -29,6 +29,4 @@ CREATE TABLE actor_pelicula (
     pelicula_id INT NOT NULL,
     PRIMARY KEY(id)
 );
-SOURCE D:/Acamica/Proyecto/Que-Veo-Hoy-Project/scripts/script-paso-1-peliculas.sql;
-SOURCE D:/Acamica/Proyecto/Que-Veo-Hoy-Project/scripts/script-paso-2-generos.sql;
-SOURCE D:/Acamica/Proyecto/Que-Veo-Hoy-Project/scripts/script-paso-3-actores.sql;
+

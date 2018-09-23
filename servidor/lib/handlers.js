@@ -34,7 +34,7 @@ function titleHandler(req) {
     pagina +
     "," +
     req.query.cantidad;
-  console.log(sql);
+
   var queryCantidad =
     "Select count(1) as total from pelicula where titulo like " +
     "'%" +
