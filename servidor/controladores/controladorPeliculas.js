@@ -12,53 +12,29 @@ function getPeliculaByID(req, res) {
   executeById(sql, sqlActores, res);
 }
 // Funcion para devolver todas las peliculas, manejando los distintos filtros.
-
 function getPeliculas(req, res) {
   var sql = [];
-  switch (true) {
-    case req.query.titulo === undefined &&
-      req.query.anio === undefined &&
-      req.query.genero === undefined:
-      sql = handler.defaultHandler(req);
-      break;
-    case req.query.titulo !== undefined &&
-      req.query.anio === undefined &&
-      req.query.genero === undefined:
-      sql = handler.titleHandler(req);
-      break;
-    case req.query.titulo === undefined &&
-      req.query.anio !== undefined &&
-      req.query.genero === undefined:
-      sql = handler.yearHandler(req);
-      break;
-    case req.query.titulo === undefined &&
-      req.query.anio === undefined &&
-      req.query.genero !== undefined:
-      sql = handler.genreHandler(req);
-      break;
-    case req.query.titulo === undefined &&
-      req.query.anio !== undefined &&
-      req.query.genero !== undefined:
-      sql = handler.genreYearHandler(req);
-      break;
-    default:
-      sql = handler.defaultHandler(req);
-      break;
+  if (
+    req.query.titulo === undefined &&
+    req.query.anio === undefined &&
+    req.query.genero === undefined
+  ) {
+    sql = handler.defaultHandler(req);
+  } else {
+    sql = handler.queryHandler(req);
   }
   executeHandler(sql, res);
 }
 function getPeliculasRecomendadas(req, res) {
   var sql = "";
-  switch (true) {
-    case req.query.puntuacion !== undefined:
-      sql = handler.puntuadasHandler(req);
-      break;
-    case req.query.anio_inicio === undefined:
+  if (req.query.puntuacion !== undefined) {
+    sql = handler.puntuadasHandler(req);
+  } else {
+    if (req.query.anio_inicio === undefined) {
       sql = handler.recomendadGeneroHandler(req);
-      break;
-    default:
+    } else {
       sql = handler.recomendadasHandler(req);
-      break;
+    }
   }
   executeRecomendacion(sql, res);
 }
