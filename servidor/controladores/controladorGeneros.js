@@ -1,6 +1,7 @@
 var DB = require("../lib/conexionbd");
+var handler = require("../lib/handlers");
 function getAllGeneros(req, res) {
-  var sql = "Select * from genero";
+  var sql = handler.GetGenerosAll();
   DB.query(sql, function(error, resultados, fields) {
     if (error) {
       errorFormat(error);

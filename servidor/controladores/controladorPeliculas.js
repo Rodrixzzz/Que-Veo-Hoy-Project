@@ -2,14 +2,8 @@ var DB = require("../lib/conexionbd");
 var handler = require("../lib/handlers");
 // Funcion para una pelicula especifica.
 function getPeliculaByID(req, res) {
-  var sql =
-    "select peli.*,gen.nombre as genero from pelicula peli,genero gen where peli.id =" +
-    req.params.id +
-    " and gen.id = peli.genero_id";
-  var sqlActores =
-    "select act.nombre from actor act,actor_pelicula actxpeli where act.id = actxpeli.actor_id and actxpeli.pelicula_id = " +
-    req.params.id;
-  executeById(sql, sqlActores, res);
+  var sql = handler.GetPelisById(req);
+  executeById(sql, res);
 }
 // Funcion para devolver todas las peliculas, manejando los distintos filtros.
 function getPeliculas(req, res) {
@@ -31,7 +25,13 @@ function getPeliculasRecomendadas(req, res) {
     sql = handler.puntuadasHandler(req);
   } else {
     if (req.query.anio_inicio === undefined) {
-      sql = handler.recomendadGeneroHandler(req);
+      if(req.query.genero ===undefined){
+        sql = handler.recomendadDefaultHandler();
+      }
+      else
+      {
+        sql = handler.recomendadGeneroHandler(req);
+      }
     } else {
       sql = handler.recomendadasHandler(req);
     }
@@ -53,12 +53,12 @@ function executeHandler(sql, res) {
     }
   });
 }
-function executeById(sql, sqlActores, res) {
-  DB.query(sql, function(error, result, fields) {
+function executeById(sql, res) {
+  DB.query(sql[0], function(error, result, fields) {
     if (error) {
       errorFormat(error);
     }
-    DB.query(sqlActores, function(errorAct, resultAct, fieldsAct) {
+    DB.query(sql[1], function(errorAct, resultAct, fieldsAct) {
       if (errorAct) {
         errorFormat(errorAct);
       }
